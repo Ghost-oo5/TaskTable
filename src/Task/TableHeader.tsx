@@ -222,6 +222,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
           )}
                   </Draggable>
         ))}
+        {provided.placeholder}
         <Th borderLeftWidth="1px" borderTopWidth="0">
           <Popover
             isOpen={isAddColumnPopoverOpen}
