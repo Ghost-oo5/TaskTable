@@ -258,7 +258,7 @@ const TaskTable = () => {
   
 
   return (
-    <Box p={4} rounded="md" display="flex" justifyContent="center">
+    <Box p={4} rounded="md" display="flex" justifyContent="center" mt={'50px'}>
       <VStack
         width="100%"
         align="start"
