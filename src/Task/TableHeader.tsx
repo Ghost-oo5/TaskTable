@@ -16,11 +16,12 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
-import React, { useEffect } from "react";
+import React from "react";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { ColumnDefinition } from "./Components/columns";
+import { useLocalStorage } from "./Components/Hooks/useLocalStorage"; 
 
 interface TableHeaderProps {
   columns: ColumnDefinition[];
@@ -52,18 +53,10 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   handleRenameColumn,
   handleDeleteColumn,
 }) => {
-  // Load columns from local storage on mount
-  useEffect(() => {
-    const storedColumns = localStorage.getItem("columns");
-    if (storedColumns) {
-      setColumns(JSON.parse(storedColumns));
-    }
-  }, [setColumns]);
-
-  // Update local storage whenever columns state changes
-  useEffect(() => {
-    localStorage.setItem("columns", JSON.stringify(columns));
-  }, [columns]);
+  const [localColumns, setLocalColumns] = useLocalStorage<ColumnDefinition[]>(
+    "columns",
+    columns
+  );
 
   const onColumnDragEnd = (result: any) => {
     const { destination, source } = result;
@@ -71,11 +64,12 @@ const TableHeader: React.FC<TableHeaderProps> = ({
     if (!destination) return;
 
     // Reorder columns based on drag result
-    const reorderedColumns = Array.from(columns);
+    const reorderedColumns = Array.from(localColumns);
     const [movedColumn] = reorderedColumns.splice(source.index, 1);
     reorderedColumns.splice(destination.index, 0, movedColumn);
 
     // Update state with reordered columns
+    setLocalColumns(reorderedColumns);
     setColumns(reorderedColumns);
   };
 
@@ -95,7 +89,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
             <Tr>
               <Th borderWidth="0"></Th>
 
-              {columns.map((col, index) => (
+              {localColumns.map((col, index) => (
                 <Draggable key={col.name} draggableId={`column-${col.name}`} index={index}>
                   {(provided) => (
                     <Th

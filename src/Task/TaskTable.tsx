@@ -29,6 +29,7 @@ import "react-tagsinput/react-tagsinput.css";
 import PopoverActions from "./Components/PopoverActions";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"; 
 import { defaultColumns, ColumnDefinition } from "./Components/columns";
+import { useLocalStorage } from "./Components/Hooks/useLocalStorage";
 
 interface RowData {
   [key: string]: string | number | JSX.Element;
@@ -44,13 +45,22 @@ const columnTypeIcons: Record<ColumnType, JSX.Element> = {
 const TaskTable = () => {
   const columnTypes: ColumnType[] = ["text", "number", "select", "date"];
   const cellHeight = "40px";
-  const [data, setData] = useState<RowData[]>(() => {
-    const storedData = localStorage.getItem("tableData");
-    return storedData ? JSON.parse(storedData) : [];
-  });
+  
   const [isAddColumnPopoverOpen, setAddColumnPopoverOpen] = useState(false);
 
-  const [columns, setColumns] = useState<ColumnDefinition[]>(defaultColumns);
+  //local Storage
+
+  const [data, setData] = useLocalStorage<RowData[]>("tableData", []);
+  const [columns, setColumns] = useLocalStorage<ColumnDefinition[]>(
+    "tableColumns",
+    defaultColumns
+  );
+  const [badgeColors, setBadgeColors] = useLocalStorage<Record<string, string>>(
+    "badgeColors",
+    {}
+  );
+  const [headingText, setHeadingText] = useLocalStorage("tableHeading", "Database");
+  
 
   const tagColorSchemes = [
     "red",
@@ -76,10 +86,7 @@ const TaskTable = () => {
     }
     return badgeColors[tag];
   };
-  const [badgeColors, setBadgeColors] = useState<Record<string, string>>(() => {
-    const storedColors = localStorage.getItem("badgeColors");
-    return storedColors ? JSON.parse(storedColors) : {};
-  });
+  
   const iconMapping = {
     Name: <FaUser />,
     Tags: <FaTag />,
@@ -100,9 +107,7 @@ const TaskTable = () => {
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
   const [tagPopoverRow, setTagPopoverRow] = useState<number | null>(null);
 
-  const [headingText, setHeadingText] = useState(() => {
-    return localStorage.getItem("tableHeading") || "Database";
-  });
+
   const [isEditingHeading, setIsEditingHeading] = useState(false);
   useEffect(() => {
     localStorage.setItem("tableHeading", headingText);
