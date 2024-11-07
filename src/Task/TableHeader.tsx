@@ -16,15 +16,15 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useEffect } from "react";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"; 
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { ColumnDefinition } from "./Components/columns";
 
 interface TableHeaderProps {
   columns: ColumnDefinition[];
-  setColumns: React.Dispatch<React.SetStateAction<ColumnDefinition[]>>; 
+  setColumns: React.Dispatch<React.SetStateAction<ColumnDefinition[]>>;
   iconMapping: Record<string, React.ReactElement | undefined>;
   columnTypeIcons: Record<string, React.ReactElement | undefined>;
   isAddColumnPopoverOpen: boolean;
@@ -52,18 +52,30 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   handleRenameColumn,
   handleDeleteColumn,
 }) => {
+  // Load columns from local storage on mount
+  useEffect(() => {
+    const storedColumns = localStorage.getItem("columns");
+    if (storedColumns) {
+      setColumns(JSON.parse(storedColumns));
+    }
+  }, [setColumns]);
+
+  // Update local storage whenever columns state changes
+  useEffect(() => {
+    localStorage.setItem("columns", JSON.stringify(columns));
+  }, [columns]);
+
   const onColumnDragEnd = (result: any) => {
     const { destination, source } = result;
 
-    // If dropped outside the list, do nothing
     if (!destination) return;
 
-    // Copy columns array and reorder the columns based on drag result
+    // Reorder columns based on drag result
     const reorderedColumns = Array.from(columns);
     const [movedColumn] = reorderedColumns.splice(source.index, 1);
     reorderedColumns.splice(destination.index, 0, movedColumn);
 
-    // Update the columns state with the reordered columns
+    // Update state with reordered columns
     setColumns(reorderedColumns);
   };
 
@@ -84,17 +96,12 @@ const TableHeader: React.FC<TableHeaderProps> = ({
               <Th borderWidth="0"></Th>
 
               {columns.map((col, index) => (
-                <Draggable
-                  key={col.name}
-                  draggableId={`column-${index}`}
-                  index={index}
-                >
+                <Draggable key={col.name} draggableId={`column-${col.name}`} index={index}>
                   {(provided) => (
                     <Th
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      key={index}
                       color="gray.400"
                       fontSize="md"
                       borderLeftWidth={index === 0 ? "0" : "1px"}
