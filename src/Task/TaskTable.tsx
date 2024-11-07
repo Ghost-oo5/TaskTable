@@ -249,8 +249,7 @@ const TaskTable = () => {
 
   const handleRowDragEnd = (result: any) => {
     const { source, destination } = result;
-    if (!destination) return;  // If dropped outside
-  
+    if (!destination) return;  
     const reorderedData = Array.from(data);
     const [movedRow] = reorderedData.splice(source.index, 1);
     reorderedData.splice(destination.index, 0, movedRow);
