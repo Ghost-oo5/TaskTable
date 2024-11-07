@@ -20,13 +20,12 @@ import React, { useState } from "react";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { ColumnDefinition, ColumnType } from "./Components/columns";
+import { ColumnDefinition, ColumnType, iconTypeMapping  } from "./Components/columns";
 import { useLocalStorage } from "./Components/Hooks/useLocalStorage"; 
 
 interface TableHeaderProps {
   columns: ColumnDefinition[];
   setColumns: React.Dispatch<React.SetStateAction<ColumnDefinition[]>>;
-  iconMapping: Record<string, React.ReactElement | undefined>;
   columnTypeIcons: Record<string, React.ReactElement | undefined>;
   isAddColumnPopoverOpen: boolean;
   setAddColumnPopoverOpen: (open: boolean) => void;
@@ -42,7 +41,6 @@ interface TableHeaderProps {
 const TableHeader: React.FC<TableHeaderProps> = ({
   columns,
   setColumns,
-  iconMapping,
   isAddColumnPopoverOpen,
   setAddColumnPopoverOpen,
   columnTypes,
@@ -77,27 +75,24 @@ const TableHeader: React.FC<TableHeaderProps> = ({
 
 
   const handleAddNewColumn = () => {
-    // If no column name is provided, default to "new" + type
-    const columnName = newColumnName || `new ${newColumnType.charAt(0).toUpperCase() + newColumnType.slice(1)}`;
-
-    // If no column type is provided, default to "text"
+    const columnName = newColumnName || `${newColumnType.charAt(0).toUpperCase() + newColumnType.slice(1)}`;
     const columnType = newColumnType || "text";
-
+  
     const newColumn: ColumnDefinition = {
       name: columnName,
       type: columnType as ColumnType,
+      iconType: columnType,   // Assign icon
     };
-
-    // Add the new column to localColumns and columns state
+  
     const updatedColumns = [...localColumns, newColumn];
     setLocalColumns(updatedColumns);
     setColumns(updatedColumns);
-
-    // Reset states and close the popover after adding
+  
     setNewColumnName("");
     setNewColumnType("");
     setAddColumnPopoverOpen(false);
-};
+  };
+  
 
 const handleDeleteColumnLocal = (index: number) => {
   // Remove the column at the specified index
@@ -139,7 +134,7 @@ const handleDeleteColumnLocal = (index: number) => {
                       <Popover>
                         <PopoverTrigger>
                           <HStack spacing={1} cursor="pointer" fontSize={"14px"}>
-                            {iconMapping[col.name as keyof typeof iconMapping] as React.ReactElement}
+                          {col.iconType && iconTypeMapping[col.iconType]}
                             <Text fontWeight={"normal"} ml={1}>
                               {col.name}
                             </Text>

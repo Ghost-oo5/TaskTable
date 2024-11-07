@@ -87,11 +87,7 @@ const TaskTable = () => {
     return badgeColors[tag];
   };
   
-  const iconMapping = {
-    Name: <FaUser />,
-    Tags: <FaTag />,
-    Date: <FaCalendarAlt />,
-  };
+
   const [isEditing, setIsEditing] = useState<{
     row: number;
     field: string;
@@ -314,7 +310,6 @@ const TaskTable = () => {
                   <TableHeader
                     columns={columns}
                     setColumns={setColumns}
-                    iconMapping={iconMapping}
                     isAddColumnPopoverOpen={isAddColumnPopoverOpen}
                     setAddColumnPopoverOpen={setAddColumnPopoverOpen}
                     columnTypes={columnTypes}
