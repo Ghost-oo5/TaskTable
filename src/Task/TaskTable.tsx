@@ -345,7 +345,7 @@ const TaskTable = () => {
                                   <>
                                     <HStack
                                       position={"absolute"}
-                                      left={"5%"}
+                                      left={"2%"}
                                       spacing={5}
                                     >
                                       <Box
