@@ -19,17 +19,17 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import { FaCalendarAlt, FaPlus, FaTag, FaUser } from "react-icons/fa";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { FaCalendarAlt, FaPlus } from "react-icons/fa";
 import { IoIosArrowDropdown } from "react-icons/io";
 import { IoText } from "react-icons/io5";
 import { MdDelete, MdNumbers } from "react-icons/md";
 import TagsInput from "react-tagsinput";
-import TableHeader from "./TableHeader";
 import "react-tagsinput/react-tagsinput.css";
-import PopoverActions from "./Components/PopoverActions";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"; 
-import { defaultColumns, ColumnDefinition } from "./Components/columns";
+import { ColumnDefinition, defaultColumns } from "./Components/columns";
 import { useLocalStorage } from "./Components/Hooks/useLocalStorage";
+import PopoverActions from "./Components/PopoverActions";
+import TableHeader from "./TableHeader";
 
 interface RowData {
   [key: string]: string | number | JSX.Element;
