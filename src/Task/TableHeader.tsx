@@ -20,7 +20,7 @@ import React from "react";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { ColumnDefinition } from "./Components/columns";
+import { ColumnDefinition, ColumnType } from "./Components/columns";
 import { useLocalStorage } from "./Components/Hooks/useLocalStorage"; 
 
 interface TableHeaderProps {
@@ -47,7 +47,6 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   setAddColumnPopoverOpen,
   columnTypes,
   columnTypeIcons,
-  addColumn,
   sortColumn,
   setFilterText,
   handleRenameColumn,
@@ -73,6 +72,22 @@ const TableHeader: React.FC<TableHeaderProps> = ({
     setColumns(reorderedColumns);
   };
 
+  const handleAddNewColumn = (type: string) => {
+    // Create a new column based on the selected type
+    const newColumn: ColumnDefinition = {
+      name: `${type.charAt(0).toUpperCase() + type.slice(1)} Column`,
+      type: type as ColumnType,
+    };
+
+    // Add the new column to localColumns and columns state
+    const updatedColumns = [...localColumns, newColumn];
+    setLocalColumns(updatedColumns);
+    setColumns(updatedColumns);
+
+    // Optionally close the popover after adding
+    setAddColumnPopoverOpen(false);
+  };
+  
   return (
     <DragDropContext onDragEnd={onColumnDragEnd}>
       <Droppable droppableId="columns" direction="horizontal" type="column">
@@ -247,7 +262,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
                           bg={"none"}
                           width={"100%"}
                           key={index}
-                          onClick={() => addColumn(type)}
+                          onClick={() => handleAddNewColumn(type)}
                         >
                           {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
                         </Button>
