@@ -8,10 +8,10 @@ export type ColumnType = "text" | "number" | "select" | "date";
 export interface ColumnDefinition {
   name: string;
   type: ColumnType;
-  iconType?: string;  // Store icon type as a string instead of JSX element
+  iconType?: string;  
+  width?: number;
 }
 
-// Map icon types to components
 export const iconTypeMapping: Record<string, JSX.Element> = {
   name: <FaUser />,
   text: <IoText />,
@@ -22,7 +22,7 @@ export const iconTypeMapping: Record<string, JSX.Element> = {
   number: <MdNumbers  />,
 };
 
-// Define your default columns with iconType
+
 export const defaultColumns: ColumnDefinition[] = [
   { name: "Name", type: "text", iconType: "name" },
   { name: "Date", type: "date", iconType: "date" },
