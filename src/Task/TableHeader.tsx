@@ -16,16 +16,16 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"; 
-import { ColumnDefinition } from "./Components/columns";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { ColumnDefinition, ColumnType, iconTypeMapping  } from "./Components/columns";
+import { useLocalStorage } from "./Components/Hooks/useLocalStorage"; 
 
 interface TableHeaderProps {
   columns: ColumnDefinition[];
-  setColumns: React.Dispatch<React.SetStateAction<ColumnDefinition[]>>; 
-  iconMapping: Record<string, React.ReactElement | undefined>;
+  setColumns: React.Dispatch<React.SetStateAction<ColumnDefinition[]>>;
   columnTypeIcons: Record<string, React.ReactElement | undefined>;
   isAddColumnPopoverOpen: boolean;
   setAddColumnPopoverOpen: (open: boolean) => void;
@@ -41,31 +41,67 @@ interface TableHeaderProps {
 const TableHeader: React.FC<TableHeaderProps> = ({
   columns,
   setColumns,
-  iconMapping,
   isAddColumnPopoverOpen,
   setAddColumnPopoverOpen,
   columnTypes,
   columnTypeIcons,
-  addColumn,
   sortColumn,
   setFilterText,
   handleRenameColumn,
-  handleDeleteColumn,
+  // handleDeleteColumn,
 }) => {
+  const [localColumns, setLocalColumns] = useLocalStorage<ColumnDefinition[]>(
+    "columns",
+    columns
+  );
+
+  const [newColumnName, setNewColumnName] = useState<string>("");
+  const [newColumnType, setNewColumnType] = useState<string>("");
+  
   const onColumnDragEnd = (result: any) => {
     const { destination, source } = result;
 
-    // If dropped outside the list, do nothing
     if (!destination) return;
 
-    // Copy columns array and reorder the columns based on drag result
-    const reorderedColumns = Array.from(columns);
+    // Reorder columns based on drag result
+    const reorderedColumns = Array.from(localColumns);
     const [movedColumn] = reorderedColumns.splice(source.index, 1);
     reorderedColumns.splice(destination.index, 0, movedColumn);
 
-    // Update the columns state with the reordered columns
+    // Update state with reordered columns
+    setLocalColumns(reorderedColumns);
     setColumns(reorderedColumns);
   };
+
+
+  const handleAddNewColumn = () => {
+    const columnName = newColumnName || `${newColumnType.charAt(0).toUpperCase() + newColumnType.slice(1)}`;
+    const columnType = newColumnType || "text";
+  
+    const newColumn: ColumnDefinition = {
+      name: columnName,
+      type: columnType as ColumnType,
+      iconType: columnType,   // Assign icon
+    };
+  
+    const updatedColumns = [...localColumns, newColumn];
+    setLocalColumns(updatedColumns);
+    setColumns(updatedColumns);
+  
+    setNewColumnName("");
+    setNewColumnType("");
+    setAddColumnPopoverOpen(false);
+  };
+  
+
+const handleDeleteColumnLocal = (index: number) => {
+  // Remove the column at the specified index
+  const updatedColumns = localColumns.filter((_, i) => i !== index);
+
+  // Update both local and global columns state
+  setLocalColumns(updatedColumns);  // Update local storage
+  setColumns(updatedColumns);       // Update parent state
+};
 
   return (
     <DragDropContext onDragEnd={onColumnDragEnd}>
@@ -83,18 +119,13 @@ const TableHeader: React.FC<TableHeaderProps> = ({
             <Tr>
               <Th borderWidth="0"></Th>
 
-              {columns.map((col, index) => (
-                <Draggable
-                  key={col.name}
-                  draggableId={`column-${index}`}
-                  index={index}
-                >
+              {localColumns.map((col, index) => (
+                <Draggable key={col.name} draggableId={`column-${col.name}`} index={index}>
                   {(provided) => (
                     <Th
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      key={index}
                       color="gray.400"
                       fontSize="md"
                       borderLeftWidth={index === 0 ? "0" : "1px"}
@@ -103,7 +134,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
                       <Popover>
                         <PopoverTrigger>
                           <HStack spacing={1} cursor="pointer" fontSize={"14px"}>
-                            {iconMapping[col.name as keyof typeof iconMapping] as React.ReactElement}
+                          {col.iconType && iconTypeMapping[col.iconType]}
                             <Text fontWeight={"normal"} ml={1}>
                               {col.name}
                             </Text>
@@ -195,7 +226,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
                                 variant="ghost"
                                 justifyContent="start"
                                 _hover={{ color: "red.500" }}
-                                onClick={() => handleDeleteColumn(index)}
+                                onClick={() => handleDeleteColumnLocal(index)}
                               >
                                 <Text>Delete Property</Text>
                               </Button>
@@ -211,7 +242,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
               {provided.placeholder}
 
               <Th borderLeftWidth="1px" borderTopWidth="0">
-                <Popover
+              <Popover
                   isOpen={isAddColumnPopoverOpen}
                   onClose={() => setAddColumnPopoverOpen(false)}
                 >
@@ -235,6 +266,14 @@ const TableHeader: React.FC<TableHeaderProps> = ({
                     minWidth="200px"
                   >
                     <VStack>
+                      <Input
+                        fontSize={"14px"}
+                        px={2}
+                        height={"28px"}
+                        placeholder="Enter Column Name"
+                        value={newColumnName}
+                        onChange={(e) => setNewColumnName(e.target.value)}
+                      />
                       {columnTypes.map((type, index) => (
                         <Button
                           justifyContent={"flex-start"}
@@ -243,14 +282,23 @@ const TableHeader: React.FC<TableHeaderProps> = ({
                           leftIcon={columnTypeIcons[type]}
                           fontSize={"14px"}
                           fontWeight={"normal"}
-                          bg={"none"}
+                          bg={newColumnType === type ? "gray.600" : "none"}
+                          
                           width={"100%"}
                           key={index}
-                          onClick={() => addColumn(type)}
+                          onClick={() => setNewColumnType(type)}
                         >
                           {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
                         </Button>
                       ))}
+                      <Button
+                        onClick={handleAddNewColumn}
+                        colorScheme="teal"
+                        mt={2}
+                        width="100%"
+                      >
+                        Add Column
+                      </Button>
                     </VStack>
                   </PopoverContent>
                 </Popover>

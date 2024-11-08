@@ -19,16 +19,17 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import { FaCalendarAlt, FaPlus, FaTag, FaUser } from "react-icons/fa";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { FaCalendarAlt, FaPlus } from "react-icons/fa";
 import { IoIosArrowDropdown } from "react-icons/io";
 import { IoText } from "react-icons/io5";
 import { MdDelete, MdNumbers } from "react-icons/md";
 import TagsInput from "react-tagsinput";
-import TableHeader from "./TableHeader";
 import "react-tagsinput/react-tagsinput.css";
+import { ColumnDefinition, defaultColumns } from "./Components/columns";
+import { useLocalStorage } from "./Components/Hooks/useLocalStorage";
 import PopoverActions from "./Components/PopoverActions";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"; 
-import { defaultColumns, ColumnDefinition } from "./Components/columns";
+import TableHeader from "./TableHeader";
 
 interface RowData {
   [key: string]: string | number | JSX.Element;
@@ -44,13 +45,22 @@ const columnTypeIcons: Record<ColumnType, JSX.Element> = {
 const TaskTable = () => {
   const columnTypes: ColumnType[] = ["text", "number", "select", "date"];
   const cellHeight = "40px";
-  const [data, setData] = useState<RowData[]>(() => {
-    const storedData = localStorage.getItem("tableData");
-    return storedData ? JSON.parse(storedData) : [];
-  });
+  
   const [isAddColumnPopoverOpen, setAddColumnPopoverOpen] = useState(false);
 
-  const [columns, setColumns] = useState<ColumnDefinition[]>(defaultColumns);
+  //local Storage
+
+  const [data, setData] = useLocalStorage<RowData[]>("tableData", []);
+  const [columns, setColumns] = useLocalStorage<ColumnDefinition[]>(
+    "tableColumns",
+    defaultColumns
+  );
+  const [badgeColors, setBadgeColors] = useLocalStorage<Record<string, string>>(
+    "badgeColors",
+    {}
+  );
+  const [headingText, setHeadingText] = useLocalStorage("tableHeading", "Database");
+  
 
   const tagColorSchemes = [
     "red",
@@ -76,15 +86,8 @@ const TaskTable = () => {
     }
     return badgeColors[tag];
   };
-  const [badgeColors, setBadgeColors] = useState<Record<string, string>>(() => {
-    const storedColors = localStorage.getItem("badgeColors");
-    return storedColors ? JSON.parse(storedColors) : {};
-  });
-  const iconMapping = {
-    Name: <FaUser />,
-    Tags: <FaTag />,
-    Date: <FaCalendarAlt />,
-  };
+  
+
   const [isEditing, setIsEditing] = useState<{
     row: number;
     field: string;
@@ -100,9 +103,7 @@ const TaskTable = () => {
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
   const [tagPopoverRow, setTagPopoverRow] = useState<number | null>(null);
 
-  const [headingText, setHeadingText] = useState(() => {
-    return localStorage.getItem("tableHeading") || "Database";
-  });
+
   const [isEditingHeading, setIsEditingHeading] = useState(false);
   useEffect(() => {
     localStorage.setItem("tableHeading", headingText);
@@ -244,8 +245,7 @@ const TaskTable = () => {
 
   const handleRowDragEnd = (result: any) => {
     const { source, destination } = result;
-    if (!destination) return;  // If dropped outside
-  
+    if (!destination) return;  
     const reorderedData = Array.from(data);
     const [movedRow] = reorderedData.splice(source.index, 1);
     reorderedData.splice(destination.index, 0, movedRow);
@@ -310,7 +310,6 @@ const TaskTable = () => {
                   <TableHeader
                     columns={columns}
                     setColumns={setColumns}
-                    iconMapping={iconMapping}
                     isAddColumnPopoverOpen={isAddColumnPopoverOpen}
                     setAddColumnPopoverOpen={setAddColumnPopoverOpen}
                     columnTypes={columnTypes}
@@ -346,7 +345,7 @@ const TaskTable = () => {
                                   <>
                                     <HStack
                                       position={"absolute"}
-                                      left={"5%"}
+                                      left={"2%"}
                                       spacing={5}
                                     >
                                       <Box
