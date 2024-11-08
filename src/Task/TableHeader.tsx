@@ -3,7 +3,6 @@ import {
   AlertDialogBody,
   AlertDialogContent,
   AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogOverlay,
   Button,
   HStack,
@@ -21,12 +20,12 @@ import {
   Thead,
   Tr,
   useDisclosure,
-  VStack,
+  VStack
 } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import {
   ColumnDefinition,
   ColumnType,
