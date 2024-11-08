@@ -1,4 +1,10 @@
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   Button,
   HStack,
   IconButton,
@@ -14,14 +20,19 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { FaArrowDown, FaArrowUp, FaPlus, FaSearch } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { ColumnDefinition, ColumnType, iconTypeMapping  } from "./Components/columns";
-import { useLocalStorage } from "./Components/Hooks/useLocalStorage"; 
+import {
+  ColumnDefinition,
+  ColumnType,
+  iconTypeMapping,
+} from "./Components/columns";
+import { useLocalStorage } from "./Components/Hooks/useLocalStorage";
 
 interface TableHeaderProps {
   columns: ColumnDefinition[];
@@ -57,7 +68,15 @@ const TableHeader: React.FC<TableHeaderProps> = ({
 
   const [newColumnName, setNewColumnName] = useState<string>("");
   const [newColumnType, setNewColumnType] = useState<string>("");
-  
+
+  const {
+    isOpen: isDeleteConfirmationOpen,
+    onOpen: onDeleteConfirmationOpen,
+    onClose: onDeleteConfirmationClose,
+  } = useDisclosure();
+
+  const [columnToDelete, setColumnToDelete] = useState<number | null>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const onColumnDragEnd = (result: any) => {
     const { destination, source } = result;
 
@@ -73,35 +92,39 @@ const TableHeader: React.FC<TableHeaderProps> = ({
     setColumns(reorderedColumns);
   };
 
+  const handleAddNewColumn = (type: string) => {
+    const columnName =
+      newColumnName || `${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    const columnType = type || "text";
 
-  const handleAddNewColumn = () => {
-    const columnName = newColumnName || `${newColumnType.charAt(0).toUpperCase() + newColumnType.slice(1)}`;
-    const columnType = newColumnType || "text";
-  
     const newColumn: ColumnDefinition = {
       name: columnName,
       type: columnType as ColumnType,
-      iconType: columnType,   // Assign icon
+      iconType: columnType,
     };
-  
+
     const updatedColumns = [...localColumns, newColumn];
     setLocalColumns(updatedColumns);
     setColumns(updatedColumns);
-  
+
     setNewColumnName("");
     setNewColumnType("");
     setAddColumnPopoverOpen(false);
   };
-  
 
-const handleDeleteColumnLocal = (index: number) => {
-  // Remove the column at the specified index
-  const updatedColumns = localColumns.filter((_, i) => i !== index);
+  const handleDeleteColumnLocal = (index: number) => {
+    setColumnToDelete(index);
+    onDeleteConfirmationOpen();
+  };
 
-  // Update both local and global columns state
-  setLocalColumns(updatedColumns);  // Update local storage
-  setColumns(updatedColumns);       // Update parent state
-};
+  const confirmDeleteColumn = () => {
+    if (columnToDelete !== null) {
+      const updatedColumns = localColumns.filter((_, i) => i !== columnToDelete);
+      setLocalColumns(updatedColumns);
+      setColumns(updatedColumns);
+    }
+    onDeleteConfirmationClose();
+  };
 
   return (
     <DragDropContext onDragEnd={onColumnDragEnd}>
@@ -120,7 +143,11 @@ const handleDeleteColumnLocal = (index: number) => {
               <Th borderWidth="0"></Th>
 
               {localColumns.map((col, index) => (
-                <Draggable key={col.name} draggableId={`column-${col.name}`} index={index}>
+                <Draggable
+                  key={col.name}
+                  draggableId={`column-${col.name}`}
+                  index={index}
+                >
                   {(provided) => (
                     <Th
                       ref={provided.innerRef}
@@ -133,8 +160,12 @@ const handleDeleteColumnLocal = (index: number) => {
                     >
                       <Popover>
                         <PopoverTrigger>
-                          <HStack spacing={1} cursor="pointer" fontSize={"14px"}>
-                          {col.iconType && iconTypeMapping[col.iconType]}
+                          <HStack
+                            spacing={1}
+                            cursor="pointer"
+                            fontSize={"14px"}
+                          >
+                            {col.iconType && iconTypeMapping[col.iconType]}
                             <Text fontWeight={"normal"} ml={1}>
                               {col.name}
                             </Text>
@@ -151,7 +182,11 @@ const handleDeleteColumnLocal = (index: number) => {
                         >
                           <PopoverBody>
                             <VStack align={"flex-start"} spacing={2}>
-                              <HStack marginTop={2} fontWeight={"normal"} py={0}>
+                              <HStack
+                                marginTop={2}
+                                fontWeight={"normal"}
+                                py={0}
+                              >
                                 <Button height={"28px"}>Aa</Button>
                                 <Input
                                   fontSize={"14px"}
@@ -160,11 +195,17 @@ const handleDeleteColumnLocal = (index: number) => {
                                   placeholder="Rename column"
                                   defaultValue={col.name}
                                   onBlur={(e) =>
-                                    handleRenameColumn(index, e.currentTarget.value)
+                                    handleRenameColumn(
+                                      index,
+                                      e.currentTarget.value
+                                    )
                                   }
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter")
-                                      handleRenameColumn(index, e.currentTarget.value);
+                                      handleRenameColumn(
+                                        index,
+                                        e.currentTarget.value
+                                      );
                                   }}
                                 />
                               </HStack>
@@ -179,7 +220,9 @@ const handleDeleteColumnLocal = (index: number) => {
                                 justifyContent="start"
                                 _hover={{ bg: "gray.600" }}
                               >
-                                <Text fontWeight={"normal"}>Sort Ascending</Text>
+                                <Text fontWeight={"normal"}>
+                                  Sort Ascending
+                                </Text>
                               </Button>
                               <Button
                                 py={0}
@@ -192,11 +235,17 @@ const handleDeleteColumnLocal = (index: number) => {
                                 justifyContent="start"
                                 _hover={{ bg: "gray.600" }}
                               >
-                                <Text fontWeight={"normal"}>Sort Descending</Text>
+                                <Text fontWeight={"normal"}>
+                                  Sort Descending
+                                </Text>
                               </Button>
 
                               <InputGroup mb={2}>
-                                <InputLeftElement pointerEvents="none" fontSize={"12px"} height={"28px"}>
+                                <InputLeftElement
+                                  pointerEvents="none"
+                                  fontSize={"12px"}
+                                  height={"28px"}
+                                >
                                   <FaSearch color="gray.300" />
                                 </InputLeftElement>
                                 <Input
@@ -205,7 +254,9 @@ const handleDeleteColumnLocal = (index: number) => {
                                   height={"28px"}
                                   type="tel"
                                   placeholder="Search"
-                                  onChange={(e) => setFilterText(e.target.value)}
+                                  onChange={(e) =>
+                                    setFilterText(e.target.value)
+                                  }
                                 />
                               </InputGroup>
                               <HStack
@@ -214,7 +265,9 @@ const handleDeleteColumnLocal = (index: number) => {
                                 fontWeight={"normal"}
                                 ml={4}
                               >
-                                <Text textTransform={"capitalize"}>Wrap Column</Text>
+                                <Text textTransform={"capitalize"}>
+                                  Wrap Column
+                                </Text>
                                 <Switch colorScheme="teal" />
                               </HStack>
                               <Button
@@ -242,7 +295,7 @@ const handleDeleteColumnLocal = (index: number) => {
               {provided.placeholder}
 
               <Th borderLeftWidth="1px" borderTopWidth="0">
-              <Popover
+                <Popover
                   isOpen={isAddColumnPopoverOpen}
                   onClose={() => setAddColumnPopoverOpen(false)}
                 >
@@ -283,22 +336,16 @@ const handleDeleteColumnLocal = (index: number) => {
                           fontSize={"14px"}
                           fontWeight={"normal"}
                           bg={newColumnType === type ? "gray.600" : "none"}
-                          
                           width={"100%"}
                           key={index}
-                          onClick={() => setNewColumnType(type)}
+                          onClick={() => {
+                            setNewColumnType(type);
+                            handleAddNewColumn(type);
+                          }}
                         >
                           {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
                         </Button>
                       ))}
-                      <Button
-                        onClick={handleAddNewColumn}
-                        colorScheme="teal"
-                        mt={2}
-                        width="100%"
-                      >
-                        Add Column
-                      </Button>
                     </VStack>
                   </PopoverContent>
                 </Popover>
@@ -307,6 +354,27 @@ const handleDeleteColumnLocal = (index: number) => {
           </Thead>
         )}
       </Droppable>
+      <AlertDialog isOpen={isDeleteConfirmationOpen} onClose={onDeleteConfirmationClose}  leastDestructiveRef={cancelRef}>
+        <AlertDialogOverlay>
+          <AlertDialogContent bg={'#252525'} width={'400px'} paddingY={'20px'}>
+            <AlertDialogBody textAlign={'center'}>
+              Are you sure you want to delete this column? <b>This action cannot be undone.</b>
+            </AlertDialogBody>
+            <AlertDialogFooter
+             display="flex"
+             flexDirection="column"
+             alignItems="center"
+             gap={2}>
+              <Button variant={'outline'}  colorScheme="red" 
+          onClick={confirmDeleteColumn}
+          width="100%">
+                Delete
+              </Button>
+              <Button onClick={onDeleteConfirmationClose} width="100%">Cancel</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </DragDropContext>
   );
 };

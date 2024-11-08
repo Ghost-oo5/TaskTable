@@ -45,11 +45,9 @@ const columnTypeIcons: Record<ColumnType, JSX.Element> = {
 const TaskTable = () => {
   const columnTypes: ColumnType[] = ["text", "number", "select", "date"];
   const cellHeight = "40px";
-  
   const [isAddColumnPopoverOpen, setAddColumnPopoverOpen] = useState(false);
 
   //local Storage
-
   const [data, setData] = useLocalStorage<RowData[]>("tableData", []);
   const [columns, setColumns] = useLocalStorage<ColumnDefinition[]>(
     "tableColumns",
@@ -105,23 +103,14 @@ const TaskTable = () => {
 
 
   const [isEditingHeading, setIsEditingHeading] = useState(false);
-  useEffect(() => {
-    localStorage.setItem("tableHeading", headingText);
-  }, [headingText]);
-
-  useEffect(() => {
-    localStorage.setItem("tableData", JSON.stringify(data));
-  }, [data]);
-
-  useEffect(() => {
-    localStorage.setItem("tableColumns", JSON.stringify(columns));
-  }, [columns]);
 
   const addRow = () => {
     const newRow: RowData = {
       Name: "",
       Tags: "",
       Date: "",
+      Status: "",
+      number: "",
     };
     setData((prevData) => [...prevData, newRow]);
   };
@@ -134,11 +123,11 @@ const TaskTable = () => {
       { name: newColumnName, type: columnType },
     ]);
 
-    // Initialize the new column in data rows
+    
     setData((prevData) =>
       prevData.map((row) => ({
         ...row,
-        [newColumnName]: "", // Initialize the new column with an empty string
+        [newColumnName]: "", 
       }))
     );
 
