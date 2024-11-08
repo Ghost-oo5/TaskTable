@@ -172,8 +172,8 @@ const TableHeader: React.FC<TableHeaderProps> = ({
                           </HStack>
                         </PopoverTrigger>
                         <PopoverContent
-                          bg="#252525"
-                          color="white"
+                          
+                          color="gray.400"
                           borderRadius="lg"
                           boxShadow="lg"
                           px={0}
