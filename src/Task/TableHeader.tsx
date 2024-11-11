@@ -40,7 +40,6 @@ interface TableHeaderProps {
   isAddColumnPopoverOpen: boolean;
   setAddColumnPopoverOpen: (open: boolean) => void;
   columnTypes: string[];
-
   addColumn: (type: string) => void;
   sortColumn: (index: number, order: "asc" | "desc") => void;
   setFilterText: (text: string) => void;

@@ -9,7 +9,6 @@ export interface ColumnDefinition {
   name: string;
   type: ColumnType;
   iconType?: string;  
-  width?: number;
 }
 
 export const iconTypeMapping: Record<string, JSX.Element> = {

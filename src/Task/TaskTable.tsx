@@ -26,16 +26,15 @@ import { IoText } from "react-icons/io5";
 import { MdDelete, MdNumbers } from "react-icons/md";
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
-import { ColumnDefinition, defaultColumns } from "./Components/columns";
+import { ColumnDefinition, ColumnType, defaultColumns } from "./Components/columns";
 import { useLocalStorage } from "./Components/Hooks/useLocalStorage";
 import PopoverActions from "./Components/PopoverActions";
 import TableHeader from "./TableHeader";
 
 interface RowData {
-  [key: string]: string | number | JSX.Element;
+  [key: string]: string | number ;
 }
 
-type ColumnType = "text" | "number" | "select" | "date";
 const columnTypeIcons: Record<ColumnType, JSX.Element> = {
   text: <IoText />,
   number: <MdNumbers />,
@@ -49,17 +48,21 @@ const TaskTable = () => {
 
   //local Storage
   const [data, setData] = useLocalStorage<RowData[]>("tableData", []);
-  const [columns, setColumns] = useLocalStorage<ColumnDefinition[]>(
-    "tableColumns",
-    defaultColumns
-  );
-  const [badgeColors, setBadgeColors] = useLocalStorage<Record<string, string>>(
-    "badgeColors",
-    {}
-  );
+  const [columns, setColumns] = useLocalStorage<ColumnDefinition[]>("tableColumns",defaultColumns);
+  const [badgeColors, setBadgeColors] = useLocalStorage<Record<string, string>>("badgeColors",{});
   const [headingText, setHeadingText] = useLocalStorage("tableHeading", "Database");
+  //States
+  const [isEditing, setIsEditing] = useState<{row: number; field: string;} | null>(null);
+  const [filterText, setFilterText] = useState<string>("");
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState<{row: number;col: number;} | null>(null);
+  const [selectedRows, setSelectedRows] = useState<boolean[]>([]);
+  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
+  const [tagPopoverRow, setTagPopoverRow] = useState<number | null>(null);
+  const [isEditingHeading, setIsEditingHeading] = useState(false);
   
-
+  //Tags Colors
   const tagColorSchemes = [
     "red",
     "green",
@@ -85,25 +88,7 @@ const TaskTable = () => {
     return badgeColors[tag];
   };
   
-
-  const [isEditing, setIsEditing] = useState<{
-    row: number;
-    field: string;
-  } | null>(null);
-  const [filterText, setFilterText] = useState<string>("");
-  const renameInputRef = useRef<HTMLInputElement | null>(null);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const [popoverPosition, setPopoverPosition] = useState<{
-    row: number;
-    col: number;
-  } | null>(null);
-  const [selectedRows, setSelectedRows] = useState<boolean[]>([]);
-  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
-  const [tagPopoverRow, setTagPopoverRow] = useState<number | null>(null);
-
-
-  const [isEditingHeading, setIsEditingHeading] = useState(false);
-
+  //Default Rows 
   const addRow = () => {
     const newRow: RowData = {
       Name: "",
@@ -122,8 +107,6 @@ const TaskTable = () => {
       ...prevColumns,
       { name: newColumnName, type: columnType },
     ]);
-
-    
     setData((prevData) =>
       prevData.map((row) => ({
         ...row,
@@ -208,7 +191,6 @@ const TaskTable = () => {
     setSelectedRows(updatedSelection);
   };
 
-  type ColumnType = "text" | "number" | "select" | "date";
 
   // Ensure existing tags keep their assigned colors
   const handleTagsInputChange = (rowIndex: number, tags: string[]) => {
@@ -239,13 +221,9 @@ const TaskTable = () => {
     const [movedRow] = reorderedData.splice(source.index, 1);
     reorderedData.splice(destination.index, 0, movedRow);
   
-    setData(reorderedData);  // Update data with reordered list
+    setData(reorderedData);  
   };
   
-
-
-  
-
   return (
     <Box p={4} rounded="md" display="flex" justifyContent="center" mt={'50px'}>
       <VStack
