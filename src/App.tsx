@@ -1,6 +1,6 @@
 import { Grid, GridItem } from "@chakra-ui/react";
-import TaskTable from "./Task/TaskTable";
-import Navbar from "./Task/Components/Navbar";
+import TaskTable from "./NotionTableClone/TaskTable";
+import Navbar from "./NotionTableClone/Components/Navbar";
 
 function App() {
   return (

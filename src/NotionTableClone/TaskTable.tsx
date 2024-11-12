@@ -235,7 +235,8 @@ const TaskTable = () => {
         marginLeft={"100px"}
         paddingRight={"100px"}
       >
-        <Box  overflowY="auto" minHeight={"800px"}>
+        <Box width={{base: '1fr', md: '100%', lg:"100%"}} overflowY="auto" overflowX={{ base: "auto", md: "initial" }} // Allow horizontal scroll on mobile (base)
+      whiteSpace={{ base: "nowrap", md: "normal" }}  minHeight={"800px"}>
           <Box ml={"30px"}>
             {isEditingHeading ? (
               <Input
