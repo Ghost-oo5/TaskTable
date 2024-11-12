@@ -42,7 +42,9 @@ const columnTypeIcons: Record<ColumnType, JSX.Element> = {
   date: <FaCalendarAlt />,
 };
 const TaskTable = () => {
+  //Column types when user adds a new column
   const columnTypes: ColumnType[] = ["text", "number", "select", "date"];
+
   const cellHeight = "40px";
   const [isAddColumnPopoverOpen, setAddColumnPopoverOpen] = useState(false);
 
@@ -225,7 +227,7 @@ const TaskTable = () => {
   };
   
   return (
-    <Box p={4} rounded="md" display="flex" justifyContent="center" mt={'50px'}>
+    <Box p={4} rounded="md" width={'1fr'} display="flex" justifyContent="center" mt={'50px'}>
       <VStack
         width="100%"
         align="start"
@@ -233,7 +235,7 @@ const TaskTable = () => {
         marginLeft={"100px"}
         paddingRight={"100px"}
       >
-        <Box width="100%" overflowY="auto" minHeight={"800px"}>
+        <Box  overflowY="auto" minHeight={"800px"}>
           <Box ml={"30px"}>
             {isEditingHeading ? (
               <Input
@@ -244,7 +246,7 @@ const TaskTable = () => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") setIsEditingHeading(false);
                 }}
-                fontSize="4xl"
+                 fontSize={{base: 'xl', md: '3xl', lg:"4xl"}}
                 fontWeight="bold"
                 variant="unstyled"
                 padding="0"
@@ -253,7 +255,7 @@ const TaskTable = () => {
               />
             ) : (
               <Text
-                fontSize="4xl"
+              fontSize={{base: '2xl', md: '3xl', lg:"4xl"}}
                 fontWeight="bold"
                 onClick={() => setIsEditingHeading(true)}
                 cursor="pointer"
@@ -307,13 +309,14 @@ const TaskTable = () => {
                               <Flex
                                 justifyContent="flex-start"
                                 alignItems="center"
+                                display={{base: 'none', md: 'table-cell'}}
                               >
                                 {hoveredRowIndex === rowIndex && (
                                   <>
                                     <HStack
                                       position={"absolute"}
-                                      left={"2%"}
-                                      spacing={5}
+                                      left={"3%"}
+                                      spacing={3}
                                     >
                                       <Box
                                         onClick={addRow}
